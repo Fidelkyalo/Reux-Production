@@ -1,0 +1,256 @@
+.admin-container {
+    padding-top: 100px;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+}
+
+.login-card {
+    background: rgba(15, 15, 15, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 3rem 2rem;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.login-card h2 {
+    color: #fff;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.form-group select option {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #d4af37;
+}
+
+.btn-primary {
+    background: #d4af37;
+    color: #000;
+    border: none;
+    padding: 0.8rem 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #c5a028;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 2rem;
+}
+
+.upload-zone {
+    width: 100%;
+    max-width: 800px;
+    border: 2px dashed #444;
+    padding: 4rem;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover {
+    border-color: #d4af37;
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #ff4444;
+    color: #fff;
+}
+
+/* New Premium Styles */
+.back-link {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #a1a1a1;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    color: #d4af37;
+}
+
+.lock-icon {
+    color: #d4af37;
+    margin-bottom: 1.5rem;
+}
+
+.login-subtitle {
+    color: #a1a1a1;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+}
+
+.error-msg {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+    padding: 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-group input::placeholder {
+    color: #555;
+}
+
+/* Admin Dashboard Styles */
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.info-card,
+.stats-card {
+    background: rgba(15, 15, 15, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.info-card h3,
+.stats-card h3 {
+    color: #d4af37;
+    margin-bottom: 1rem;
+}
+
+.info-card code {
+    background: rgba(212, 175, 55, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    color: #d4af37;
+    font-family: 'Courier New', monospace;
+}
+
+.category-selector {
+    margin: 1.5rem 0;
+}
+
+.category-selector label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #a1a1a1;
+}
+
+.category-selector select {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.photo-thumbnail {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.photo-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-category {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: #d4af37;
+    padding: 0.25rem;
+    font-size: 0.7rem;
+    text-align: center;
+}

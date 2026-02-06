@@ -1,0 +1,115 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: 2rem 0;
+    transition: all 0.4s ease;
+}
+
+.navbar.scrolled {
+    padding: 1rem 0;
+    background: rgba(5, 5, 5, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 50px;
+    width: auto;
+    mix-blend-mode: multiply;
+    filter: brightness(1.1) contrast(1.1);
+}
+
+.nav-links {
+    display: flex;
+    gap: 3rem;
+}
+
+.nav-links a {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+.nav-links a:hover {
+    opacity: 1;
+    color: var(--accent);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.social-desktop {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-desktop a:hover {
+    color: var(--accent);
+}
+
+.menu-toggle,
+.social-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 300px;
+        background: var(--bg-secondary);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transform: translateX(100%);
+        transition: transform 0.4s ease-in-out;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-links.active {
+        transform: translateX(0);
+    }
+
+    .social-desktop {
+        display: none;
+    }
+
+    .menu-toggle {
+        display: block;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        z-index: 1001;
+    }
+
+    .social-mobile {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+}
