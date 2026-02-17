@@ -17,13 +17,13 @@ export default function Hero() {
                 <div className="hero-collage-side fade-in-up delay-600">
                     <div className="collage-container">
                         <div className="collage-item item-1">
-                            <img src="/assets/hero1.jpg" alt="Photography 1" />
+                            <img src="/assets/hero1.webp" alt="Photography 1" />
                         </div>
                         <div className="collage-item item-2">
-                            <img src="/assets/hero2.jpg" alt="Photography 2" />
+                            <img src="/assets/hero2.webp" alt="Photography 2" />
                         </div>
                         <div className="collage-item item-3">
-                            <img src="/assets/hero3.jpg" alt="Photography 3" />
+                            <img src="/assets/hero3.webp" alt="Photography 3" />
                         </div>
                     </div>
                 </div>

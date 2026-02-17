@@ -60,7 +60,8 @@ const copyAssets = async () => {
 
                     const processPromises = batch.map(async (image) => {
                         const srcPath = path.join(sourceDir, image);
-                        const destPath = path.join(destDir, image);
+                        const fileName = path.parse(image).name + '.webp';
+                        const destPath = path.join(destDir, fileName);
 
                         try {
                             // Resize and compress
@@ -69,9 +70,7 @@ const copyAssets = async () => {
                                     fit: 'inside',
                                     withoutEnlargement: true
                                 })
-                                .jpeg({ quality: QUALITY, progressive: true, force: false })
-                                .png({ quality: QUALITY, compressionLevel: 9, force: false })
-                                .webp({ quality: QUALITY, force: false })
+                                .webp({ quality: QUALITY })
                                 .toFile(destPath);
                         } catch (err) {
                             console.error(`    Failed to process ${image}: ${err.message}`);
@@ -87,8 +86,8 @@ const copyAssets = async () => {
                     await Promise.all(processPromises);
                 }
 
-                // Add ALL images to manifest
-                manifest[category] = images.map(img => `/assets/${normalizedCategory}/${img}`);
+                // Add ALL images to manifest (with updated .webp extension)
+                manifest[category] = images.map(img => `/assets/${normalizedCategory}/${path.parse(img).name}.webp`);
                 console.log(`Successfully processed ${category}`);
             } else {
                 console.log(`No images found in ${category}`);

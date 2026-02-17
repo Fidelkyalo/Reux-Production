@@ -7,7 +7,7 @@ export default function About() {
     const [profileImg, setProfileImg] = useState('');
 
     useEffect(() => {
-        setProfileImg('/assets/profile.jpg');
+        setProfileImg('/assets/profile.webp');
     }, []);
 
     return (

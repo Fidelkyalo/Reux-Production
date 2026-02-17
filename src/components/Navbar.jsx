@@ -45,7 +45,7 @@ export default function Navbar() {
         <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
             <div className="container nav-content">
                 <Link to="/" className="logo">
-                    <img src="/assets/logo.jpg" alt="REUX" />
+                    <img src="/assets/logo.webp" alt="REUX" />
                 </Link>
 
                 <div className={`nav-links ${isOpen ? 'active' : ''}`}>
