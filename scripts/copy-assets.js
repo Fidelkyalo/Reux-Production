@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,11 +26,9 @@ const CATEGORIES_TO_SCAN = [
     'LIVE RECORDING'
 ];
 
-// Helper to get random items
-const getRandomItems = (arr, n) => {
-    const shuffled = arr.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, n);
-};
+const BATCH_SIZE = 20; // Slightly smaller batch for processing
+const MAX_DIMENSION = 1920;
+const QUALITY = 80;
 
 // Main function
 const copyAssets = async () => {
@@ -40,7 +39,6 @@ const copyAssets = async () => {
 
     for (const category of CATEGORIES_TO_SCAN) {
         const sourceDir = path.join(SOURCE_ROOT, category);
-        // Normalize destination directory name: lowercase and replace spaces with hyphens
         const normalizedCategory = category.toLowerCase().replace(/\s+/g, '-');
         const destDir = path.join(DEST_ROOT, normalizedCategory);
 
@@ -49,21 +47,49 @@ const copyAssets = async () => {
             const images = files.filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file));
 
             if (images.length > 0) {
-                console.log(`Found ${images.length} images in ${category} -> ${normalizedCategory}`);
+                console.log(`Optimizing ${images.length} images in ${category} -> ${normalizedCategory}`);
 
                 if (!fs.existsSync(destDir)) {
                     fs.mkdirSync(destDir, { recursive: true });
                 }
 
-                // Copy ALL images
-                images.forEach(image => {
-                    const srcPath = path.join(sourceDir, image);
-                    const destPath = path.join(destDir, image);
-                    fs.copyFileSync(srcPath, destPath);
-                });
+                // Process images in batches
+                for (let i = 0; i < images.length; i += BATCH_SIZE) {
+                    const batch = images.slice(i, i + BATCH_SIZE);
+                    console.log(`  Processing batch ${i / BATCH_SIZE + 1}/${Math.ceil(images.length / BATCH_SIZE)}...`);
 
-                // Add ALL images to manifest using normalized paths
+                    const processPromises = batch.map(async (image) => {
+                        const srcPath = path.join(sourceDir, image);
+                        const destPath = path.join(destDir, image);
+
+                        try {
+                            // Resize and compress
+                            await sharp(srcPath)
+                                .resize(MAX_DIMENSION, MAX_DIMENSION, {
+                                    fit: 'inside',
+                                    withoutEnlargement: true
+                                })
+                                .jpeg({ quality: QUALITY, progressive: true, force: false })
+                                .png({ quality: QUALITY, compressionLevel: 9, force: false })
+                                .webp({ quality: QUALITY, force: false })
+                                .toFile(destPath);
+                        } catch (err) {
+                            console.error(`    Failed to process ${image}: ${err.message}`);
+                            // Fallback to simple copy if sharp fails
+                            try {
+                                fs.copyFileSync(srcPath, destPath);
+                            } catch (copyErr) {
+                                console.error(`    Fallback copy also failed for ${image}: ${copyErr.message}`);
+                            }
+                        }
+                    });
+
+                    await Promise.all(processPromises);
+                }
+
+                // Add ALL images to manifest
                 manifest[category] = images.map(img => `/assets/${normalizedCategory}/${img}`);
+                console.log(`Successfully processed ${category}`);
             } else {
                 console.log(`No images found in ${category}`);
                 manifest[category] = [];
@@ -79,7 +105,7 @@ const copyAssets = async () => {
         path.join(PROJECT_ROOT, 'src/assets-manifest.json'),
         JSON.stringify(manifest, null, 2)
     );
-    console.log('Asset copy complete & manifest generated!');
+    console.log('Asset optimization complete & manifest generated!');
 };
 
 copyAssets();
