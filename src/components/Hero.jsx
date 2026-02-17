@@ -1,40 +1,31 @@
-
-import React, { useState, useEffect } from 'react';
-import manifest from '../assets-manifest.json';
+import React from 'react';
 import './Hero.css';
 
 export default function Hero() {
-    const [bgImage, setBgImage] = useState('');
-
-    useEffect(() => {
-        // Pick a random image from WEDDINGS or NATURE for the hero
-        const categories = ['WEDDINGS', 'NATURE', 'SHOOT'];
-        const availableCategories = categories.filter(cat => manifest[cat] && manifest[cat].length > 0);
-
-        if (availableCategories.length > 0) {
-            const randomCat = availableCategories[Math.floor(Math.random() * availableCategories.length)];
-            const images = manifest[randomCat];
-            const randomImg = images[Math.floor(Math.random() * images.length)];
-            setBgImage(randomImg);
-        }
-    }, []);
-
     return (
         <section id="hero" className="hero">
-            {/* Blurred background for atmosphere and to fill gaps */}
-            <div className="hero-bg-blur" style={{ backgroundImage: `url(${bgImage})` }}></div>
+            <div className="container hero-container">
+                <div className="hero-text-side">
+                    <h1 className="fade-in-up uppercase">REUX <span className="text-accent">PRODUCTION</span></h1>
+                    <p className="subtitle fade-in-up delay-200">Capturing Moments, Creating Memories</p>
+                    <div className="hero-actions fade-in-up delay-400">
+                        <a href="#gallery" className="btn btn-accent">View Portfolio</a>
+                        <a href="#contact" className="btn">Book Now</a>
+                    </div>
+                </div>
 
-            {/* Sharp foreground image using contain to show the whole photo */}
-            <div className="hero-bg-main" style={{ backgroundImage: `url(${bgImage})` }}></div>
-
-            <div className="hero-overlay"></div>
-
-            <div className="container hero-content">
-                <h1 className="fade-in-up">REUX <span className="text-accent">PRODUCTION</span></h1>
-                <p className="subtitle fade-in-up delay-200">Capturing Moments, Creating Memories</p>
-                <div className="hero-actions fade-in-up delay-400">
-                    <a href="#gallery" className="btn btn-accent">View Portfolio</a>
-                    <a href="#contact" className="btn">Book Now</a>
+                <div className="hero-collage-side fade-in-up delay-600">
+                    <div className="collage-container">
+                        <div className="collage-item item-1">
+                            <img src="/assets/hero1.jpg" alt="Photography 1" />
+                        </div>
+                        <div className="collage-item item-2">
+                            <img src="/assets/hero2.jpg" alt="Photography 2" />
+                        </div>
+                        <div className="collage-item item-3">
+                            <img src="/assets/hero3.jpg" alt="Photography 3" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
