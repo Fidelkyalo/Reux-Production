@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Instagram, LogIn, User } from 'lucide-react';
+import { Menu, X, Instagram, LogIn, User, MessageCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
@@ -56,6 +56,7 @@ export default function Navbar() {
 
                     <div className="social-mobile">
                         <a href="https://www.instagram.com/reux_production?igsh=MTJqN3M3d2Fka2Jq" target="_blank" rel="noopener noreferrer"><Instagram size={20} /></a>
+                        <a href="https://wa.me/254757417140" target="_blank" rel="noopener noreferrer" title="WhatsApp Us"><MessageCircle size={20} /></a>
                         <Link to="/login" className="login-icon" onClick={() => setIsOpen(false)}><LogIn size={20} /></Link>
                     </div>
                 </div>
@@ -63,6 +64,7 @@ export default function Navbar() {
                 <div className="nav-actions">
                     <div className="social-desktop">
                         <a href="https://www.instagram.com/reux_production?igsh=MTJqN3M3d2Fka2Jq" target="_blank" rel="noopener noreferrer"><Instagram size={20} /></a>
+                        <a href="https://wa.me/254757417140" target="_blank" rel="noopener noreferrer" title="WhatsApp Us"><MessageCircle size={20} /></a>
                         {isLoggedIn ? (
                             <Link to="/admin" title="Admin Dashboard"><User size={20} /></Link>
                         ) : (

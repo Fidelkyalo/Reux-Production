@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import './Contact.css';
 
 export default function Contact() {
@@ -25,6 +25,14 @@ export default function Contact() {
                             <div>
                                 <h4>Phone</h4>
                                 <a href="tel:+254757417140">+254 757 417140</a>
+                            </div>
+                        </div>
+
+                        <div className="info-item">
+                            <MessageCircle className="icon" />
+                            <div>
+                                <h4>WhatsApp</h4>
+                                <a href="https://wa.me/254757417140" target="_blank" rel="noopener noreferrer">+254 757 417140</a>
                             </div>
                         </div>
 
