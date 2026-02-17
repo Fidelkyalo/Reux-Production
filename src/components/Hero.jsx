@@ -21,7 +21,12 @@ export default function Hero() {
 
     return (
         <section id="hero" className="hero">
-            <div className="hero-bg" style={{ backgroundImage: `url(${bgImage})` }}></div>
+            {/* Blurred background for atmosphere and to fill gaps */}
+            <div className="hero-bg-blur" style={{ backgroundImage: `url(${bgImage})` }}></div>
+
+            {/* Sharp foreground image using contain to show the whole photo */}
+            <div className="hero-bg-main" style={{ backgroundImage: `url(${bgImage})` }}></div>
+
             <div className="hero-overlay"></div>
 
             <div className="container hero-content">
