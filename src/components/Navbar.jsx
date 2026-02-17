@@ -44,7 +44,7 @@ export default function Navbar() {
     return (
         <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
             <div className="container nav-content">
-                <Link to="/" className="logo">
+                <Link to="/" className="logo" onClick={() => handleNavClick('hero')}>
                     <img src="/assets/logo.webp" alt="REUX" />
                 </Link>
 
