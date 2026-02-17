@@ -192,6 +192,9 @@
     .hero-text-side {
         max-width: 100%;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .hero-actions {
@@ -199,9 +202,8 @@
     }
 
     .hero-collage-side {
-        width: 100%;
-        max-width: 500px;
-        margin: 0 auto;
+        display: none;
+        /* Hide collage on smaller screens as requested */
     }
 
     .collage-container {
