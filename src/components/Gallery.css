@@ -1,5 +1,6 @@
-.gallery-section {
+.gallery {
     background-color: var(--bg-secondary);
+    padding: 100px 0;
 }
 
 .section-header {
@@ -79,13 +80,14 @@
 
 /* Skeleton Loading Support */
 .skeleton {
-    background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+    background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     width: 100%;
     aspect-ratio: 4/5;
-    border-radius: 4px;
+    border-radius: 8px;
     margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 @keyframes shimmer {

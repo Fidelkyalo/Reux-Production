@@ -21,7 +21,7 @@ export default function Gallery() {
     const [allImages, setAllImages] = useState([]);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const PAGE_SIZE = 12; // Smaller initial batch for speed
 
@@ -50,6 +50,7 @@ export default function Gallery() {
             setHasMore(data.length === PAGE_SIZE);
         }
         setInitialLoading(false);
+        setLoading(false);
     };
 
     const fetchImages = async () => {
