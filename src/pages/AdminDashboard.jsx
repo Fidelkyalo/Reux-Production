@@ -7,7 +7,7 @@ const PREDEFINED_CATEGORIES = [
     'WEDDINGS',
     'NATURE',
     'STUDIO',
-    'ENTERTEINMENT',
+    'BURIAL',
     'GRADUATION',
     'PROPOSAL',
     'RURACIO',
