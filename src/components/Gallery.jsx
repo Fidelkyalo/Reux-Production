@@ -19,6 +19,7 @@ const PREDEFINED_CATEGORIES = [
 export default function Gallery() {
     const [filter, setFilter] = useState('ALL');
     const [allImages, setAllImages] = useState([]);
+    const [displayLimit, setDisplayLimit] = useState(24);
     const [loading, setLoading] = useState(true);
 
     const categories = ['ALL', ...PREDEFINED_CATEGORIES];
@@ -56,9 +57,19 @@ export default function Gallery() {
     };
 
     const filteredImages = useMemo(() => {
-        if (filter === 'ALL') return allImages;
-        return allImages.filter(img => img.categories.includes(filter));
+        let filtered = filter === 'ALL'
+            ? allImages
+            : allImages.filter(img => img.categories.includes(filter));
+        return filtered;
     }, [filter, allImages]);
+
+    const displayedImages = useMemo(() => {
+        return filteredImages.slice(0, displayLimit);
+    }, [filteredImages, displayLimit]);
+
+    const handleLoadMore = () => {
+        setDisplayLimit(prev => prev + 24);
+    };
 
     return (
         <section className="gallery" id="gallery">
@@ -77,16 +88,30 @@ export default function Gallery() {
                 </div>
                 {loading ? (
                     <div className="text-center" style={{ padding: '2rem' }}>Loading gallery...</div>
-                ) : filteredImages.length === 0 ? (
+                ) : displayedImages.length === 0 ? (
                     <div className="text-center" style={{ padding: '2rem' }}>No images found in this category.</div>
                 ) : (
-                    <div className="gallery-grid">
-                        {filteredImages.map((img, idx) => (
-                            <div key={idx} className="gallery-item">
-                                <img src={img.src} alt={img.category} loading="lazy" />
+                    <>
+                        <div className="gallery-grid">
+                            {displayedImages.map((img, idx) => (
+                                <div key={idx} className="gallery-item">
+                                    <img
+                                        src={`${img.src}?width=800&quality=75`}
+                                        alt="Gallery"
+                                        loading="lazy"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        {displayLimit < filteredImages.length && (
+                            <div className="load-more-container" style={{ textAlign: 'center', marginTop: '3rem' }}>
+                                <button className="btn-accent" onClick={handleLoadMore}>
+                                    Load More Photos ({filteredImages.length - displayLimit} remaining)
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
             </div>
         </section>
