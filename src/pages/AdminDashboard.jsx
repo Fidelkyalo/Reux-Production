@@ -257,41 +257,70 @@ export default function AdminDashboard() {
         if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected images? This cannot be undone.`)) return;
 
         setUploading(true);
-        setUploadMessage(`Deleting ${selectedIds.length} images...`);
+        setUploadMessage(`Starting deletion of ${selectedIds.length} images...`);
+        console.log("Starting bulk delete for IDs:", selectedIds);
 
         try {
             const imagesToDelete = images.filter(img => selectedIds.includes(img.id));
+            console.log("Found images in state:", imagesToDelete.length);
 
-            // 1. Prepare Storage paths
+            // 1. Prepare Storage paths with more robust parsing
             const storagePaths = imagesToDelete.map(img => {
-                const url = new URL(img.image_url);
-                const pathParts = url.pathname.split('/');
-                return pathParts.slice(pathParts.indexOf('portfolio-assets') + 1).join('/');
-            });
+                try {
+                    const url = new URL(img.image_url);
+                    // Extract path after /portfolio-assets/
+                    // Handle various URL formats (public vs private/relative)
+                    const parts = url.pathname.split('portfolio-assets/');
+                    if (parts.length < 2) {
+                        console.warn("Could not find portfolio-assets in URL:", img.image_url);
+                        return null;
+                    }
+                    return parts[1];
+                } catch (e) {
+                    console.error("URL Parsing failed for:", img.image_url, e);
+                    return null;
+                }
+            }).filter(p => p !== null);
 
-            // 2. Delete from Storage in Bulk
-            const { error: storageError } = await supabase.storage
-                .from('portfolio-assets')
-                .remove(storagePaths);
+            console.log("Resolved storage paths:", storagePaths);
 
-            if (storageError) throw storageError;
+            if (storagePaths.length > 0) {
+                setUploadMessage(`Removing ${storagePaths.length} files from storage...`);
+                // Use the storage client directly to remove
+                const { data, error: storageError } = await supabase.storage
+                    .from('portfolio-assets')
+                    .remove(storagePaths);
 
-            // 3. Delete from Database in Bulk
+                if (storageError) {
+                    console.error("Supabase Storage Delete Error:", storageError);
+                    // We continue anyway to try and clear the DB records
+                } else {
+                    console.log("Storage delete success:", data);
+                }
+            }
+
+            // 2. Delete from Database
+            setUploadMessage(`Clearing ${selectedIds.length} database records...`);
             const { error: dbError } = await supabase
                 .from('portfolio_images')
                 .delete()
                 .in('id', selectedIds);
 
-            if (dbError) throw dbError;
+            if (dbError) {
+                console.error("Supabase Database Delete Error:", dbError);
+                throw new Error(`Database Error: ${dbError.message}`);
+            }
 
+            console.log("Database delete success");
             setUploadMessage(`Successfully deleted ${selectedIds.length} images.`);
             setSelectedIds([]);
-            fetchInitialImages();
+            await fetchInitialImages();
 
             setTimeout(() => setUploadMessage(''), 3000);
         } catch (error) {
-            console.error("Bulk Delete Error:", error);
-            setUploadMessage(`Error: ${error.message}`);
+            console.error("Final Deletion Fail:", error);
+            setUploadMessage(`Delete Failed: ${error.message}`);
+            alert(`Delete Failed: ${error.message}. Check console for details.`);
         } finally {
             setUploading(false);
         }
@@ -301,19 +330,25 @@ export default function AdminDashboard() {
         if (!window.confirm("Are you sure you want to delete this image?")) return;
 
         try {
-            // Delete from DB
-            await supabase.from('portfolio_images').delete().eq('id', id);
+            // 1. Delete from DB first
+            const { error: dbError } = await supabase.from('portfolio_images').delete().eq('id', id);
+            if (dbError) throw dbError;
 
-            // Extract the path from the publicUrl to delete from storage
-            const pathParts = imageUrl.split('/portfolio-assets/');
-            if (pathParts.length === 2) {
-                await supabase.storage.from('portfolio-assets').remove([pathParts[1]]);
+            // 2. Extract path and delete from storage
+            try {
+                const url = new URL(imageUrl);
+                const parts = url.pathname.split('portfolio-assets/');
+                if (parts.length === 2) {
+                    await supabase.storage.from('portfolio-assets').remove([parts[1]]);
+                }
+            } catch (e) {
+                console.error("Storage delete fail (non-fatal):", e);
             }
 
             fetchInitialImages();
         } catch (error) {
             console.error('Delete Error:', error);
-            alert("Failed to delete image");
+            alert(`Failed to delete image: ${error.message}`);
         }
     };
 
