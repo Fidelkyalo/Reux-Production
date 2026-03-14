@@ -86,6 +86,60 @@ export default function AdminDashboard() {
         navigate('/login');
     };
 
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1600;
+                    const MAX_HEIGHT = 1600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                // Create a new file from the blob
+                                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                                    type: 'image/webp',
+                                    lastModified: Date.now(),
+                                });
+                                resolve(compressedFile);
+                            } else {
+                                reject(new Error('Canvas to Blob conversion failed'));
+                            }
+                        },
+                        'image/webp',
+                        0.8 // 80% quality for excellent balance
+                    );
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    };
+
     const handleUpload = async (e) => {
         if (e) e.preventDefault();
         if (uploadFiles.length === 0 || uploadCategories.length === 0) {
@@ -99,14 +153,21 @@ export default function AdminDashboard() {
 
         try {
             for (let i = 0; i < uploadFiles.length; i++) {
-                const file = uploadFiles[i];
+                let file = uploadFiles[i];
                 const progress = Math.round(((i) / uploadFiles.length) * 100);
                 setUploadProgress(progress);
-                setUploadMessage(`Uploading ${i + 1}/${uploadFiles.length}: ${file.name}`);
+                setUploadMessage(`Optimizing & Uploading ${i + 1}/${uploadFiles.length}: ${file.name}`);
+
+                // 0. Compress Image Client-Side
+                try {
+                    file = await compressImage(file);
+                } catch (err) {
+                    console.error("Compression failed for", file.name, err);
+                    // Fallback to original if compression fails
+                }
 
                 // 1. Upload to Storage
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
                 const filePath = `${uploadCategories[0].toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage

@@ -111,10 +111,9 @@ export default function Gallery() {
                         <div className="gallery-grid">
                             {displayedImages.map((img, idx) => (
                                 <div key={idx} className="gallery-item fade-in">
-                                    <img
-                                        src={`${img.src}?width=600&quality=50`}
+                                    <ImageWithBlur
+                                        src={`${img.src}`}
                                         alt="Gallery"
-                                        loading="lazy"
                                     />
                                 </div>
                             ))}
@@ -131,6 +130,23 @@ export default function Gallery() {
                 )}
             </div>
         </section>
+    );
+}
+
+function ImageWithBlur({ src, alt }) {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    return (
+        <div className={`blur-image-container ${isLoaded ? 'loaded' : ''}`}>
+            {!isLoaded && <div className="skeleton"></div>}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setIsLoaded(true)}
+                loading="lazy"
+                style={{ opacity: isLoaded ? 1 : 0 }}
+            />
+        </div>
     );
 }
 
