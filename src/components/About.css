@@ -22,6 +22,7 @@
     max-width: 350px;
     aspect-ratio: 3/4;
     object-fit: cover;
+    object-position: top;
     border-radius: 50%;
     position: relative;
     z-index: 2;

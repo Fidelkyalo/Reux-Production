@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
 
     // Upload state
-    const [uploadFile, setUploadFile] = useState(null);
+    const [uploadFiles, setUploadFiles] = useState([]);
     const [uploadCategory, setUploadCategory] = useState('');
     const [uploading, setUploading] = useState(false);
     const [uploadMessage, setUploadMessage] = useState('');
@@ -59,42 +59,47 @@ export default function AdminDashboard() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!uploadFile || !uploadCategory.trim()) {
-            setUploadMessage('Please select a file and enter a category.');
+        if (uploadFiles.length === 0 || !uploadCategory.trim()) {
+            setUploadMessage('Please select files and enter a category.');
             return;
         }
 
         setUploading(true);
-        setUploadMessage('');
+        setUploadMessage(`Uploading 0/${uploadFiles.length}...`);
 
         try {
-            // 1. Upload to Storage
-            const fileExt = uploadFile.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
-            const filePath = `${uploadCategory.toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
+            for (let i = 0; i < uploadFiles.length; i++) {
+                const file = uploadFiles[i];
+                setUploadMessage(`Uploading ${i + 1}/${uploadFiles.length}: ${file.name}...`);
 
-            const { error: uploadError } = await supabase.storage
-                .from('portfolio-assets')
-                .upload(filePath, uploadFile, { upsert: true });
+                // 1. Upload to Storage
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `${uploadCategory.toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
 
-            if (uploadError) throw uploadError;
+                const { error: uploadError } = await supabase.storage
+                    .from('portfolio-assets')
+                    .upload(filePath, file, { upsert: true });
 
-            // 2. Get public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('portfolio-assets')
-                .getPublicUrl(filePath);
+                if (uploadError) throw uploadError;
 
-            // 3. Insert into Database
-            const { error: dbError } = await supabase
-                .from('portfolio_images')
-                .insert([
-                    { image_url: publicUrl, category: uploadCategory.trim() }
-                ]);
+                // 2. Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('portfolio-assets')
+                    .getPublicUrl(filePath);
 
-            if (dbError) throw dbError;
+                // 3. Insert into Database
+                const { error: dbError } = await supabase
+                    .from('portfolio_images')
+                    .insert([
+                        { image_url: publicUrl, category: uploadCategory.trim() }
+                    ]);
 
-            setUploadMessage('Upload successful!');
-            setUploadFile(null);
+                if (dbError) throw dbError;
+            }
+
+            setUploadMessage(`Successfully uploaded ${uploadFiles.length} photos!`);
+            setUploadFiles([]);
             setUploadCategory('');
 
             // Re-fetch gallery
@@ -161,18 +166,19 @@ export default function AdminDashboard() {
                             </select>
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Select Image:</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Select Images (Multiple allowed):</label>
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setUploadFile(e.target.files[0])}
+                                onChange={(e) => setUploadFiles(Array.from(e.target.files))}
+                                multiple
                                 required
                                 style={{ width: '100%' }}
                             />
                         </div>
                         {uploadMessage && <div style={{ color: uploadMessage.includes('failed') ? 'red' : 'green' }}>{uploadMessage}</div>}
                         <button type="submit" disabled={uploading} className="btn-primary" style={{ alignSelf: 'flex-start' }}>
-                            {uploading ? 'Uploading...' : 'Upload Photo'}
+                            {uploading ? 'Uploading...' : `Upload ${uploadFiles.length > 0 ? uploadFiles.length : ''} Photo${uploadFiles.length > 1 ? 's' : ''}`}
                         </button>
                     </form>
                 </div>
