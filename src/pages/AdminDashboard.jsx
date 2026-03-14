@@ -349,6 +349,12 @@ export default function AdminDashboard() {
                         >
                             {uploading ? 'Processing Batch...' : `Start Upload (${uploadFiles.length} Photos)`}
                         </button>
+
+                        {!uploading && uploadFiles.length > 0 && uploadCategories.length === 0 && (
+                            <p style={{ color: '#d4af37', fontSize: '0.85rem', textAlign: 'center', marginTop: '-1rem' }}>
+                                💡 Tip: Select at least one category above to enable the upload button.
+                            </p>
+                        )}
                     </form>
                 </div>
 
