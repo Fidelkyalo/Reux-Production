@@ -59,6 +59,7 @@ export default function Navbar() {
                     <a href="#hero" onClick={() => handleNavClick('hero')}>Home</a>
                     <a href="#gallery" onClick={() => handleNavClick('gallery')}>Portfolio</a>
                     <a href="#about" onClick={() => handleNavClick('about')}>About</a>
+                    <a href="#rate-us" onClick={() => handleNavClick('rate-us')}>RATE US</a>
                     <a href="#contact" onClick={() => handleNavClick('contact')}>Contact</a>
 
                     <div className="social-mobile">

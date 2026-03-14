@@ -5,7 +5,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Gallery from './components/Gallery';
 import About from './components/About';
-import Testimonials from './components/Testimonials';
+import RateUs from './components/RateUs';
 import Contact from './components/Contact';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
@@ -26,7 +26,7 @@ function Home() {
       <Hero />
       <Gallery />
       <About />
-      <Testimonials />
+      <RateUs />
       <Contact />
     </>
   );
