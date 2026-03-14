@@ -3,6 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../conf/supabase';
 import '../styles/Admin.css';
 
+const PREDEFINED_CATEGORIES = [
+    'WEDDINGS',
+    'NATURE',
+    'STUDIO',
+    'ENTERTEINMENT',
+    'GRADUATION',
+    'PROPOSAL',
+    'RURACIO',
+    'SHOOT',
+    'WORK',
+    'Open Air',
+    'LIVE RECORDING'
+];
+
 export default function AdminDashboard() {
     const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [images, setImages] = useState([]);
@@ -134,14 +148,17 @@ export default function AdminDashboard() {
                     <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem' }}>Category Name:</label>
-                            <input
-                                type="text"
+                            <select
                                 value={uploadCategory}
                                 onChange={(e) => setUploadCategory(e.target.value)}
-                                placeholder="e.g. WEDDINGS"
                                 required
-                                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
+                                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#333', color: 'white' }}
+                            >
+                                <option value="" disabled>Select a category</option>
+                                {PREDEFINED_CATEGORIES.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem' }}>Select Image:</label>
