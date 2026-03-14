@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Instagram, LogIn, User, MessageCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../conf/supabase';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -13,18 +14,19 @@ export default function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        const checkAuth = () => {
-            const loggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            const email = sessionStorage.getItem('userEmail');
-            setIsLoggedIn(loggedIn && email === 'reuxproduction@gmail.com');
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setIsLoggedIn(!!session);
         };
 
         checkAuth();
-        // Listen for storage changes in other tabs
-        window.addEventListener('storage', checkAuth);
-        // Also check periodically or on navigation if needed
-        return () => window.removeEventListener('storage', checkAuth);
-    }, [location]);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setIsLoggedIn(!!session);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     const handleNavClick = (id) => {
         setIsOpen(false);

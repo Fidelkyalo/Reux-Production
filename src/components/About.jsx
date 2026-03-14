@@ -1,4 +1,5 @@
 
+import React from 'react';
 import './About.css';
 
 export default function About() {
@@ -6,7 +7,6 @@ export default function About() {
         <section id="about" className="section about-section">
             <div className="container about-content">
                 <div className="about-image">
-                    {profileImg && <img src={profileImg} alt="Photographer Profile" />}
                     <div className="frame"></div>
                 </div>
                 <div className="about-text">
