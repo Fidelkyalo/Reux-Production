@@ -30,6 +30,7 @@ export default function AdminDashboard() {
     const [uploadMessage, setUploadMessage] = useState('');
     const [dragActive, setDragActive] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [selectedIds, setSelectedIds] = useState([]); // For batch deletion
 
     const navigate = useNavigate();
 
@@ -150,6 +151,55 @@ export default function AdminDashboard() {
 
     const clearFiles = () => {
         setUploadFiles([]);
+    };
+
+    const toggleSelection = (id) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === displayedImages.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(displayedImages.map(img => img.id));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!selectedIds.length) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected images?`)) return;
+
+        setUploading(true);
+        setUploadMessage(`Deleting ${selectedIds.length} images...`);
+
+        try {
+            const imagesToDelete = images.filter(img => selectedIds.includes(img.id));
+
+            for (const img of imagesToDelete) {
+                const url = new URL(img.image_url);
+                const pathParts = url.pathname.split('/');
+                const filePath = pathParts.slice(pathParts.indexOf('portfolio-assets') + 1).join('/');
+
+                // Delete from Storage
+                await supabase.storage.from('portfolio-assets').remove([filePath]);
+
+                // Delete from DB
+                await supabase.from('portfolio_images').delete().eq('id', img.id);
+            }
+
+            setUploadMessage(`Successfully deleted ${selectedIds.length} images.`);
+            setSelectedIds([]);
+            fetchImages();
+
+            setTimeout(() => setUploadMessage(''), 3000);
+        } catch (error) {
+            console.error("Bulk Delete Error:", error);
+            setUploadMessage(`Error: ${error.message}`);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleDelete = async (id, imageUrl) => {
@@ -278,22 +328,40 @@ export default function AdminDashboard() {
                     </form>
                 </div>
 
-                <div className="stats-card">
-                    <h3>Current Photos Managed by Supabase</h3>
+                <div className="stats-card fade-in">
+                    <div className="management-toolbar">
+                        <h3>🖼️ Manage Portfolio ({images.length} total)</h3>
+                        <div className="batch-actions">
+                            <button
+                                onClick={toggleSelectAll}
+                                className="btn-small btn-outline"
+                            >
+                                {selectedIds.length === displayedImages.length && displayedImages.length > 0 ? 'Deselect All' : 'Select Visible'}
+                            </button>
+                            {selectedIds.length > 0 && (
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="btn-small btn-delete-batch"
+                                >
+                                    Delete Selected ({selectedIds.length})
+                                </button>
+                            )}
+                        </div>
+                    </div>
 
                     {loading ? (
                         <p>Loading images...</p>
                     ) : (
                         <>
                             <div className="category-selector">
-                                <label>View Category:</label>
+                                <label>Filter View:</label>
                                 <select
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
                                 >
                                     {categories.map(cat => (
                                         <option key={cat} value={cat}>
-                                            {cat} ({cat === 'ALL' ? images.length : images.filter(i => i.category === cat).length})
+                                            {cat} ({cat === 'ALL' ? images.length : images.filter(i => (i.categories || []).includes(cat)).length})
                                         </option>
                                     ))}
                                 </select>
@@ -301,18 +369,24 @@ export default function AdminDashboard() {
 
                             <div className="photo-grid">
                                 {displayedImages.map((img) => (
-                                    <div key={img.id} className="photo-thumbnail" style={{ position: 'relative' }}>
+                                    <div
+                                        key={img.id}
+                                        className={`photo-thumbnail ${selectedIds.includes(img.id) ? 'selected' : ''}`}
+                                        onClick={() => toggleSelection(img.id)}
+                                        style={{ position: 'relative' }}
+                                    >
+                                        <div className="selection-overlay">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(img.id)}
+                                                readOnly
+                                            />
+                                        </div>
                                         <img src={img.image_url} alt="Portfolio" />
                                         <span className="photo-category">{(img.categories || []).join(', ')}</span>
                                         <button
-                                            onClick={() => handleDelete(img.id, img.image_url)}
-                                            style={{
-                                                position: 'absolute', top: 5, right: 5,
-                                                background: 'rgba(255, 0, 0, 0.8)', color: 'white', border: 'none',
-                                                borderRadius: '50%', width: 25, height: 25, cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                fontWeight: 'bold'
-                                            }}
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(img.id, img.image_url); }}
+                                            className="individual-delete-btn"
                                             title="Delete Image"
                                         >
                                             ×
