@@ -2,11 +2,26 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../conf/supabase';
 import './Gallery.css';
 
+const PREDEFINED_CATEGORIES = [
+    'WEDDINGS',
+    'NATURE',
+    'STUDIO',
+    'ENTERTEINMENT',
+    'GRADUATION',
+    'PROPOSAL',
+    'RURACIO',
+    'SHOOT',
+    'WORK',
+    'Open Air',
+    'LIVE RECORDING'
+];
+
 export default function Gallery() {
     const [filter, setFilter] = useState('ALL');
     const [allImages, setAllImages] = useState([]);
-    const [categories, setCategories] = useState(['ALL']);
     const [loading, setLoading] = useState(true);
+
+    const categories = ['ALL', ...PREDEFINED_CATEGORIES];
 
     useEffect(() => {
         fetchImages();
@@ -30,10 +45,6 @@ export default function Gallery() {
             // Shuffle images
             formattedImages.sort(() => 0.5 - Math.random());
             setAllImages(formattedImages);
-
-            // Extract unique categories
-            const uniqueCats = [...new Set(data.map(img => img.category))];
-            setCategories(['ALL', ...uniqueCats]);
         }
         setLoading(false);
     };
@@ -61,7 +72,7 @@ export default function Gallery() {
                 {loading ? (
                     <div className="text-center" style={{ padding: '2rem' }}>Loading gallery...</div>
                 ) : filteredImages.length === 0 ? (
-                    <div className="text-center" style={{ padding: '2rem' }}>No images found. You can add them from the Admin Dashboard.</div>
+                    <div className="text-center" style={{ padding: '2rem' }}>No images found in this category.</div>
                 ) : (
                     <div className="gallery-grid">
                         {filteredImages.map((img, idx) => (
@@ -75,3 +86,4 @@ export default function Gallery() {
         </section>
     );
 }
+

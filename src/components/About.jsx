@@ -1,15 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import manifest from '../assets-manifest.json';
 import './About.css';
 
 export default function About() {
-    const [profileImg, setProfileImg] = useState('');
-
-    useEffect(() => {
-        setProfileImg('/assets/profile.webp');
-    }, []);
-
     return (
         <section id="about" className="section about-section">
             <div className="container about-content">
