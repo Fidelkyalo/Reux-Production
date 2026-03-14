@@ -39,7 +39,7 @@ export default function Gallery() {
         } else if (data) {
             const formattedImages = data.map(img => ({
                 src: img.image_url,
-                category: img.category
+                categories: img.categories || []
             }));
 
             // Shuffle images
@@ -51,7 +51,7 @@ export default function Gallery() {
 
     const filteredImages = useMemo(() => {
         if (filter === 'ALL') return allImages;
-        return allImages.filter(img => img.category === filter);
+        return allImages.filter(img => img.categories.includes(filter));
     }, [filter, allImages]);
 
     return (

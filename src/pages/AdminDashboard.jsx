@@ -25,7 +25,7 @@ export default function AdminDashboard() {
 
     // Upload state
     const [uploadFiles, setUploadFiles] = useState([]);
-    const [uploadCategory, setUploadCategory] = useState('');
+    const [uploadCategories, setUploadCategories] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [uploadMessage, setUploadMessage] = useState('');
     const [dragActive, setDragActive] = useState(false);
@@ -48,7 +48,9 @@ export default function AdminDashboard() {
             console.error("Error fetching images:", error);
         } else if (data) {
             setImages(data);
-            const uniqueCats = [...new Set(data.map(img => img.category))];
+            // Categories is now an array, so we flatMap
+            const allCats = data.flatMap(img => img.categories || []);
+            const uniqueCats = [...new Set(allCats)];
             setCategories(['ALL', ...uniqueCats]);
         }
         setLoading(false);
@@ -61,8 +63,8 @@ export default function AdminDashboard() {
 
     const handleUpload = async (e) => {
         if (e) e.preventDefault();
-        if (uploadFiles.length === 0 || !uploadCategory.trim()) {
-            setUploadMessage('Please select files and select a category.');
+        if (uploadFiles.length === 0 || uploadCategories.length === 0) {
+            setUploadMessage('Please select files and at least one category.');
             return;
         }
 
@@ -80,7 +82,7 @@ export default function AdminDashboard() {
                 // 1. Upload to Storage
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-                const filePath = `${uploadCategory.toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
+                const filePath = `${uploadCategories[0].toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
                     .from('portfolio-assets')
@@ -97,16 +99,16 @@ export default function AdminDashboard() {
                 const { error: dbError } = await supabase
                     .from('portfolio_images')
                     .insert([
-                        { image_url: publicUrl, category: uploadCategory.trim() }
+                        { image_url: publicUrl, categories: uploadCategories }
                     ]);
 
                 if (dbError) throw dbError;
             }
 
             setUploadProgress(100);
-            setUploadMessage(`Successfully uploaded ${uploadFiles.length} photos to ${uploadCategory}!`);
+            setUploadMessage(`Successfully uploaded ${uploadFiles.length} photos to ${uploadCategories.join(', ')}!`);
             setUploadFiles([]);
-            setUploadCategory('');
+            setUploadCategories([]);
 
             // Re-fetch gallery
             fetchImages();
@@ -172,7 +174,7 @@ export default function AdminDashboard() {
 
     const displayedImages = useMemo(() => {
         if (selectedCategory === 'ALL') return images;
-        return images.filter(img => img.category === selectedCategory);
+        return images.filter(img => (img.categories || []).includes(selectedCategory));
     }, [selectedCategory, images]);
 
     return (
@@ -192,20 +194,7 @@ export default function AdminDashboard() {
                     </p>
 
                     <form onSubmit={handleUpload} onDragEnter={handleDrag} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>1. Select Portfolio Category:</label>
-                            <select
-                                value={uploadCategory}
-                                onChange={(e) => setUploadCategory(e.target.value)}
-                                required
-                                style={{ width: '100%', padding: '0.8rem', borderRadius: '4px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'rgba(0,0,0,0.5)', color: 'white' }}
-                            >
-                                <option value="" disabled>Choose category for this batch...</option>
-                                {PREDEFINED_CATEGORIES.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-                        </div>
+
 
                         <div
                             className={`upload-zone ${dragActive ? 'drag-active' : ''} ${uploadFiles.length > 0 ? 'has-files' : ''}`}
@@ -232,12 +221,34 @@ export default function AdminDashboard() {
                                 </div>
                             ) : (
                                 <div className="file-preview-list">
-                                    <p><strong>{uploadFiles.length}</strong> photos selected ready for {uploadCategory || '...'}</p>
+                                    <p><strong>{uploadFiles.length}</strong> photos selected ready for {uploadCategories.length > 0 ? uploadCategories.join(', ') : '...'}</p>
                                     <div className="preview-actions">
                                         <button type="button" onClick={(e) => { e.stopPropagation(); clearFiles(); }} className="btn-small btn-outline">Clear All</button>
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>2. Select Categories (Select all that apply):</label>
+                            <div className="category-chips">
+                                {PREDEFINED_CATEGORIES.map(cat => (
+                                    <button
+                                        key={cat}
+                                        type="button"
+                                        className={`chip ${uploadCategories.includes(cat) ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setUploadCategories(prev =>
+                                                prev.includes(cat)
+                                                    ? prev.filter(c => c !== cat)
+                                                    : [...prev, cat]
+                                            );
+                                        }}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {uploading && (
@@ -259,7 +270,7 @@ export default function AdminDashboard() {
 
                         <button
                             type="submit"
-                            disabled={uploading || uploadFiles.length === 0 || !uploadCategory}
+                            disabled={uploading || uploadFiles.length === 0 || uploadCategories.length === 0}
                             className="btn-primary upload-submit-btn"
                         >
                             {uploading ? 'Processing Batch...' : `Start Upload (${uploadFiles.length} Photos)`}
@@ -291,8 +302,8 @@ export default function AdminDashboard() {
                             <div className="photo-grid">
                                 {displayedImages.map((img) => (
                                     <div key={img.id} className="photo-thumbnail" style={{ position: 'relative' }}>
-                                        <img src={img.image_url} alt={img.category} />
-                                        <span className="photo-category">{img.category}</span>
+                                        <img src={img.image_url} alt="Portfolio" />
+                                        <span className="photo-category">{(img.categories || []).join(', ')}</span>
                                         <button
                                             onClick={() => handleDelete(img.id, img.image_url)}
                                             style={{
