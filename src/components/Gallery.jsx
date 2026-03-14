@@ -9,10 +9,10 @@ const PREDEFINED_CATEGORIES = [
     'BURIAL',
     'GRADUATION',
     'PROPOSAL',
-    'RURACIO',
+    'DOWRY PAYMENT',
     'SHOOT',
     'WORK',
-    'Open Air',
+    'OPEN AIR',
     'LIVE RECORDING'
 ];
 
