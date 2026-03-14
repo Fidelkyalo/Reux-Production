@@ -14,7 +14,6 @@ export default function About() {
             <div className="container about-content">
                 <div className="about-image">
                     {profileImg && <img src={profileImg} alt="Photographer Profile" />}
-                    <div className="frame"></div>
                 </div>
                 <div className="about-text">
                     <h2>About The Artist</h2>
