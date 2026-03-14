@@ -8,10 +8,27 @@ export default function RateUs() {
     const [name, setName] = useState('');
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
+    const [clientType, setClientType] = useState('WEDDINGS');
+    const [otherClientType, setOtherClientType] = useState('');
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    const PREDEFINED_TYPES = [
+        'WEDDINGS',
+        'NATURE',
+        'STUDIO',
+        'BURIAL',
+        'GRADUATION',
+        'PROPOSAL',
+        'DOWRY PAYMENT',
+        'SHOOT',
+        'WORK',
+        'OPEN AIR',
+        'LIVE RECORDING',
+        'OTHER'
+    ];
 
     useEffect(() => {
         if (isConfigured) {
@@ -39,10 +56,21 @@ export default function RateUs() {
             return;
         }
 
+        if (clientType === 'OTHER' && !otherClientType) {
+            setMessage({ type: 'error', text: 'Please specify your task/type' });
+            return;
+        }
+
         setSubmitting(true);
         const { error } = await supabase
             .from('client_reviews')
-            .insert([{ name, rating, comment }]);
+            .insert([{
+                name,
+                rating,
+                comment,
+                client_type: clientType,
+                other_client_type: clientType === 'OTHER' ? otherClientType : null
+            }]);
 
         if (error) {
             setMessage({ type: 'error', text: 'Failed to submit review. Please try again.' });
@@ -51,6 +79,8 @@ export default function RateUs() {
             setName('');
             setComment('');
             setRating(5);
+            setClientType('WEDDINGS');
+            setOtherClientType('');
             fetchReviews();
         }
         setSubmitting(false);
@@ -70,16 +100,44 @@ export default function RateUs() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="rate-form">
-                            <div className="form-group">
-                                <label>Your Name</label>
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Enter your name"
-                                    required
-                                />
+                            <div className="form-group-row">
+                                <div className="form-group">
+                                    <label>Your Name</label>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Enter your name"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Type of Client</label>
+                                    <select
+                                        value={clientType}
+                                        onChange={(e) => setClientType(e.target.value)}
+                                        required
+                                    >
+                                        {PREDEFINED_TYPES.map(type => (
+                                            <option key={type} value={type}>{type}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
+
+                            {clientType === 'OTHER' && (
+                                <div className="form-group fade-in">
+                                    <label>Specify Task / Client Type</label>
+                                    <input
+                                        type="text"
+                                        value={otherClientType}
+                                        onChange={(e) => setOtherClientType(e.target.value)}
+                                        placeholder="e.g. Birthday Party, Corporate Event"
+                                        required
+                                    />
+                                </div>
+                            )}
 
                             <div className="form-group">
                                 <label>Your Rating</label>
@@ -103,7 +161,7 @@ export default function RateUs() {
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
                                     placeholder="Tell us what you liked about REUX Production..."
-                                    rows="4"
+                                    rows="10"
                                     required
                                 ></textarea>
                             </div>
@@ -138,7 +196,12 @@ export default function RateUs() {
                                 {reviews.map((review) => (
                                     <div key={review.id} className="review-item fade-in">
                                         <div className="review-top">
-                                            <h4>{review.name}</h4>
+                                            <div>
+                                                <h4>{review.name}</h4>
+                                                <span className="client-badge">
+                                                    {review.client_type === 'OTHER' ? review.other_client_type : review.client_type}
+                                                </span>
+                                            </div>
                                             <div className="review-stars">
                                                 {[...Array(5)].map((_, i) => (
                                                     <Star
@@ -150,7 +213,7 @@ export default function RateUs() {
                                                 ))}
                                             </div>
                                         </div>
-                                        <p>{review.comment}</p>
+                                        <p className="review-comment-text">{review.comment}</p>
                                         <span className="review-date">
                                             {new Date(review.created_at).toLocaleDateString()}
                                         </span>
