@@ -39,13 +39,23 @@ export default function Gallery() {
     const fetchInitialImages = async () => {
         setInitialLoading(true);
         setPage(0);
-        const { data, error } = await supabase
+
+        let query = supabase
             .from('portfolio_images')
             .select('*')
-            .order('created_at', { ascending: false })
-            .limit(PAGE_SIZE);
+            .order('created_at', { ascending: false });
 
-        if (data) {
+        if (filter !== 'ALL') {
+            // Check if the categories array contains the filter string
+            // Correct way to filter by a value in a text[] array in Supabase
+            query = query.contains('categories', [filter]);
+        }
+
+        const { data, error } = await query.limit(PAGE_SIZE);
+
+        if (error) {
+            console.error("Gallery Fetch Error:", error);
+        } else if (data) {
             setAllImages(data);
             setHasMore(data.length === PAGE_SIZE);
         }
@@ -56,13 +66,21 @@ export default function Gallery() {
     const fetchImages = async () => {
         const nextPage = page + 1;
         setLoading(true);
-        const { data, error } = await supabase
+
+        let query = supabase
             .from('portfolio_images')
             .select('*')
-            .order('created_at', { ascending: false })
-            .range(nextPage * PAGE_SIZE, (nextPage + 1) * PAGE_SIZE - 1);
+            .order('created_at', { ascending: false });
 
-        if (data) {
+        if (filter !== 'ALL') {
+            query = query.contains('categories', [filter]);
+        }
+
+        const { data, error } = await query.range(nextPage * PAGE_SIZE, (nextPage + 1) * PAGE_SIZE - 1);
+
+        if (error) {
+            console.error("Gallery Load More Error:", error);
+        } else if (data) {
             setAllImages(prev => [...prev, ...data]);
             setPage(nextPage);
             setHasMore(data.length === PAGE_SIZE);
@@ -71,7 +89,6 @@ export default function Gallery() {
     };
 
     const displayedImages = useMemo(() => {
-        // Shuffling only the first batch for variety without lag
         return allImages.map(img => ({
             id: img.id,
             src: img.image_url,
