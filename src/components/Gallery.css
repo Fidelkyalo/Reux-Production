@@ -77,6 +77,27 @@
     transform: scale(1.05);
 }
 
+/* Skeleton Loading Support */
+.skeleton {
+    background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    width: 100%;
+    aspect-ratio: 4/5;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
 .item-overlay {
     position: absolute;
     top: 0;

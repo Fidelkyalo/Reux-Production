@@ -19,56 +19,67 @@ const PREDEFINED_CATEGORIES = [
 export default function Gallery() {
     const [filter, setFilter] = useState('ALL');
     const [allImages, setAllImages] = useState([]);
-    const [displayLimit, setDisplayLimit] = useState(24);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const PAGE_SIZE = 12; // Smaller initial batch for speed
 
     const categories = ['ALL', ...PREDEFINED_CATEGORIES];
 
     useEffect(() => {
         if (isConfigured) {
-            fetchImages();
+            fetchInitialImages();
         } else {
-            console.warn("Gallery: Supabase is not configured. Skipping fetch.");
+            setInitialLoading(false);
             setLoading(false);
         }
-    }, []);
+    }, [filter]);
+
+    const fetchInitialImages = async () => {
+        setInitialLoading(true);
+        setPage(0);
+        const { data, error } = await supabase
+            .from('portfolio_images')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(PAGE_SIZE);
+
+        if (data) {
+            setAllImages(data);
+            setHasMore(data.length === PAGE_SIZE);
+        }
+        setInitialLoading(false);
+    };
 
     const fetchImages = async () => {
-        if (!isConfigured) return;
+        const nextPage = page + 1;
         setLoading(true);
         const { data, error } = await supabase
             .from('portfolio_images')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .range(nextPage * PAGE_SIZE, (nextPage + 1) * PAGE_SIZE - 1);
 
-        if (error) {
-            console.error("Error fetching images:", error);
-        } else if (data) {
-            const formattedImages = data.map(img => ({
-                src: img.image_url,
-                categories: img.categories || []
-            }));
-
-            // Shuffle images
-            formattedImages.sort(() => 0.5 - Math.random());
-            setAllImages(formattedImages);
+        if (data) {
+            setAllImages(prev => [...prev, ...data]);
+            setPage(nextPage);
+            setHasMore(data.length === PAGE_SIZE);
         }
         setLoading(false);
     };
 
-    const filteredImages = useMemo(() => {
-        let filtered = filter === 'ALL'
-            ? allImages
-            : allImages.filter(img => img.categories.includes(filter));
-        return filtered;
-    }, [filter, allImages]);
-
     const displayedImages = useMemo(() => {
-        return filteredImages.slice(0, displayLimit);
-    }, [filteredImages, displayLimit]);
+        // Shuffling only the first batch for variety without lag
+        return allImages.map(img => ({
+            id: img.id,
+            src: img.image_url,
+            categories: img.categories || []
+        }));
+    }, [allImages]);
 
     const handleLoadMore = () => {
-        setDisplayLimit(prev => prev + 24);
+        fetchImages();
     };
 
     return (
@@ -86,17 +97,21 @@ export default function Gallery() {
                         </button>
                     ))}
                 </div>
-                {loading ? (
-                    <div className="text-center" style={{ padding: '2rem' }}>Loading gallery...</div>
+                {initialLoading ? (
+                    <div className="gallery-grid">
+                        {[1, 2, 3, 4, 5, 6].map(i => (
+                            <div key={i} className="skeleton"></div>
+                        ))}
+                    </div>
                 ) : displayedImages.length === 0 ? (
                     <div className="text-center" style={{ padding: '2rem' }}>No images found in this category.</div>
                 ) : (
                     <>
                         <div className="gallery-grid">
                             {displayedImages.map((img, idx) => (
-                                <div key={idx} className="gallery-item">
+                                <div key={idx} className="gallery-item fade-in">
                                     <img
-                                        src={`${img.src}?width=800&quality=75`}
+                                        src={`${img.src}?width=600&quality=50`}
                                         alt="Gallery"
                                         loading="lazy"
                                     />
@@ -104,10 +119,10 @@ export default function Gallery() {
                             ))}
                         </div>
 
-                        {displayLimit < filteredImages.length && (
+                        {hasMore && (
                             <div className="load-more-container" style={{ textAlign: 'center', marginTop: '3rem' }}>
-                                <button className="btn-accent" onClick={handleLoadMore}>
-                                    Load More Photos ({filteredImages.length - displayLimit} remaining)
+                                <button className="btn-accent" onClick={handleLoadMore} disabled={loading}>
+                                    {loading ? 'Optimizing...' : 'Show More Masterpieces'}
                                 </button>
                             </div>
                         )}
