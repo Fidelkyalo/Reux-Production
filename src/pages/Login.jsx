@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, Lock } from 'lucide-react';
-import { supabase } from '../conf/supabase';
+import { supabase, isConfigured } from '../conf/supabase';
 import '../styles/Admin.css';
 
 export default function Login() {
@@ -14,18 +14,29 @@ export default function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!isConfigured || !supabase) {
+            setError('System configuration error: Database not connected. Please restart the dev server to load the new .env file.');
+            return;
+        }
+
         setLoading(true);
 
-        const { data, error: authError } = await supabase.auth.signInWithPassword({
-            email,
-            password
-        });
+        try {
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
 
-        if (authError) {
-            setError(authError.message);
-            console.error(authError);
-        } else if (data.session) {
-            navigate('/admin');
+            if (authError) {
+                setError(authError.message);
+                console.error(authError);
+            } else if (data.session) {
+                navigate('/admin');
+            }
+        } catch (err) {
+            setError('An unexpected error occurred during login.');
+            console.error(err);
         }
 
         setLoading(false);
