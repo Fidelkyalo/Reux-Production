@@ -254,7 +254,7 @@ export default function AdminDashboard() {
 
     const handleBulkDelete = async () => {
         if (!selectedIds.length) return;
-        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected images?`)) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected images? This cannot be undone.`)) return;
 
         setUploading(true);
         setUploadMessage(`Deleting ${selectedIds.length} images...`);
@@ -262,17 +262,27 @@ export default function AdminDashboard() {
         try {
             const imagesToDelete = images.filter(img => selectedIds.includes(img.id));
 
-            for (const img of imagesToDelete) {
+            // 1. Prepare Storage paths
+            const storagePaths = imagesToDelete.map(img => {
                 const url = new URL(img.image_url);
                 const pathParts = url.pathname.split('/');
-                const filePath = pathParts.slice(pathParts.indexOf('portfolio-assets') + 1).join('/');
+                return pathParts.slice(pathParts.indexOf('portfolio-assets') + 1).join('/');
+            });
 
-                // Delete from Storage
-                await supabase.storage.from('portfolio-assets').remove([filePath]);
+            // 2. Delete from Storage in Bulk
+            const { error: storageError } = await supabase.storage
+                .from('portfolio-assets')
+                .remove(storagePaths);
 
-                // Delete from DB
-                await supabase.from('portfolio_images').delete().eq('id', img.id);
-            }
+            if (storageError) throw storageError;
+
+            // 3. Delete from Database in Bulk
+            const { error: dbError } = await supabase
+                .from('portfolio_images')
+                .delete()
+                .in('id', selectedIds);
+
+            if (dbError) throw dbError;
 
             setUploadMessage(`Successfully deleted ${selectedIds.length} images.`);
             setSelectedIds([]);
@@ -427,7 +437,7 @@ export default function AdminDashboard() {
                                 onClick={toggleSelectAll}
                                 className="btn-small btn-outline"
                             >
-                                {selectedIds.length === displayedImages.length && displayedImages.length > 0 ? 'Deselect All' : 'Select Visible'}
+                                {selectedIds.length === displayedImages.length && displayedImages.length > 0 ? 'Deselect All' : 'Select All'}
                             </button>
                             {selectedIds.length > 0 && (
                                 <button
