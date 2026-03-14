@@ -446,6 +446,13 @@
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
 }
 
+.photo-thumbnail img.broken-img {
+    background: #1a1a1a;
+    object-fit: contain;
+    padding: 2rem;
+    filter: grayscale(1) opacity(0.3);
+}
+
 .selection-overlay {
     position: absolute;
     top: 10px;

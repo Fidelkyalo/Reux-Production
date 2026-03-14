@@ -301,9 +301,9 @@ export default function AdminDashboard() {
 
             // 2. Delete from Database
             setUploadMessage(`Clearing ${selectedIds.length} database records...`);
-            const { error: dbError } = await supabase
+            const { count, error: dbError } = await supabase
                 .from('portfolio_images')
-                .delete()
+                .delete({ count: 'exact' })
                 .in('id', selectedIds);
 
             if (dbError) {
@@ -311,7 +311,12 @@ export default function AdminDashboard() {
                 throw new Error(`Database Error: ${dbError.message}`);
             }
 
-            console.log("Database delete success");
+            if (count === 0) {
+                console.warn("Delete successful but 0 rows affected. Likely RLS issue.");
+                throw new Error("Deletion failed. This usually happens if your Supabase account doesn't have 'DELETE' permissions enabled in the SQL Editor. Please see the troubleshooting guide I sent.");
+            }
+
+            console.log(`Database delete success: ${count} rows removed`);
             setUploadMessage(`Successfully deleted ${selectedIds.length} images.`);
             setSelectedIds([]);
             await fetchInitialImages();
@@ -518,7 +523,14 @@ export default function AdminDashboard() {
                                                 readOnly
                                             />
                                         </div>
-                                        <img src={`${img.image_url}?width=300&quality=50`} alt="Portfolio" />
+                                        <img
+                                            src={img.image_url}
+                                            alt="Portfolio"
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/300x300?text=Broken+Image';
+                                                e.target.classList.add('broken-img');
+                                            }}
+                                        />
                                         <span className="photo-category">{(img.categories || []).join(', ')}</span>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDelete(img.id, img.image_url); }}
