@@ -28,6 +28,8 @@ export default function AdminDashboard() {
     const [uploadCategory, setUploadCategory] = useState('');
     const [uploading, setUploading] = useState(false);
     const [uploadMessage, setUploadMessage] = useState('');
+    const [dragActive, setDragActive] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const navigate = useNavigate();
 
@@ -58,23 +60,26 @@ export default function AdminDashboard() {
     };
 
     const handleUpload = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (uploadFiles.length === 0 || !uploadCategory.trim()) {
-            setUploadMessage('Please select files and enter a category.');
+            setUploadMessage('Please select files and select a category.');
             return;
         }
 
         setUploading(true);
-        setUploadMessage(`Uploading 0/${uploadFiles.length}...`);
+        setUploadProgress(0);
+        setUploadMessage(`Processing ${uploadFiles.length} photos...`);
 
         try {
             for (let i = 0; i < uploadFiles.length; i++) {
                 const file = uploadFiles[i];
-                setUploadMessage(`Uploading ${i + 1}/${uploadFiles.length}: ${file.name}...`);
+                const progress = Math.round(((i) / uploadFiles.length) * 100);
+                setUploadProgress(progress);
+                setUploadMessage(`Uploading ${i + 1}/${uploadFiles.length}: ${file.name}`);
 
                 // 1. Upload to Storage
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${Math.random()}.${fileExt}`;
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                 const filePath = `${uploadCategory.toLowerCase().replace(/\s+/g, '-')}/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
@@ -98,12 +103,16 @@ export default function AdminDashboard() {
                 if (dbError) throw dbError;
             }
 
-            setUploadMessage(`Successfully uploaded ${uploadFiles.length} photos!`);
+            setUploadProgress(100);
+            setUploadMessage(`Successfully uploaded ${uploadFiles.length} photos to ${uploadCategory}!`);
             setUploadFiles([]);
             setUploadCategory('');
 
             // Re-fetch gallery
             fetchImages();
+
+            // Clear success message after 5 seconds
+            setTimeout(() => setUploadMessage(''), 5000);
 
         } catch (error) {
             console.error('Upload Error:', error);
@@ -111,6 +120,34 @@ export default function AdminDashboard() {
         } finally {
             setUploading(false);
         }
+    };
+
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            setUploadFiles(prev => [...prev, ...files]);
+        }
+    };
+
+    const removeFile = (index) => {
+        setUploadFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const clearFiles = () => {
+        setUploadFiles([]);
     };
 
     const handleDelete = async (id, imageUrl) => {
@@ -148,37 +185,84 @@ export default function AdminDashboard() {
             </header>
 
             <div className="dashboard-content">
-                <div className="info-card">
-                    <h3>📸 Upload New Photo</h3>
-                    <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                <div className="info-card fade-in">
+                    <h3>🚀 Bulk Photo Management</h3>
+                    <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                        Drag and drop your images below. You can upload 100+ photos at once, though we recommend batches of ~200 for best stability.
+                    </p>
+
+                    <form onSubmit={handleUpload} onDragEnter={handleDrag} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Category Name:</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>1. Select Portfolio Category:</label>
                             <select
                                 value={uploadCategory}
                                 onChange={(e) => setUploadCategory(e.target.value)}
                                 required
-                                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#333', color: 'white' }}
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '4px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'rgba(0,0,0,0.5)', color: 'white' }}
                             >
-                                <option value="" disabled>Select a category</option>
+                                <option value="" disabled>Choose category for this batch...</option>
                                 {PREDEFINED_CATEGORIES.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Select Images (Multiple allowed):</label>
+
+                        <div
+                            className={`upload-zone ${dragActive ? 'drag-active' : ''} ${uploadFiles.length > 0 ? 'has-files' : ''}`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            onClick={() => document.getElementById('file-input').click()}
+                        >
                             <input
+                                id="file-input"
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setUploadFiles(Array.from(e.target.files))}
+                                onChange={(e) => setUploadFiles(prev => [...prev, ...Array.from(e.target.files)])}
                                 multiple
-                                required
-                                style={{ width: '100%' }}
+                                style={{ display: 'none' }}
                             />
+
+                            {uploadFiles.length === 0 ? (
+                                <div className="upload-prompt">
+                                    <div className="upload-icon">📁</div>
+                                    <p>Drag photos here or <span>click to browse</span></p>
+                                    <small>Supports JPG, PNG, WEBP</small>
+                                </div>
+                            ) : (
+                                <div className="file-preview-list">
+                                    <p><strong>{uploadFiles.length}</strong> photos selected ready for {uploadCategory || '...'}</p>
+                                    <div className="preview-actions">
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); clearFiles(); }} className="btn-small btn-outline">Clear All</button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        {uploadMessage && <div style={{ color: uploadMessage.includes('failed') ? 'red' : 'green' }}>{uploadMessage}</div>}
-                        <button type="submit" disabled={uploading} className="btn-primary" style={{ alignSelf: 'flex-start' }}>
-                            {uploading ? 'Uploading...' : `Upload ${uploadFiles.length > 0 ? uploadFiles.length : ''} Photo${uploadFiles.length > 1 ? 's' : ''}`}
+
+                        {uploading && (
+                            <div className="progress-container">
+                                <div className="progress-bar">
+                                    <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
+                                </div>
+                                <div className="progress-stats">
+                                    <span>{uploadProgress}%</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {uploadMessage && (
+                            <div className={`status-message ${uploadMessage.includes('failed') ? 'error' : 'success'}`}>
+                                {uploading && <span className="spinner">⏳</span>} {uploadMessage}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={uploading || uploadFiles.length === 0 || !uploadCategory}
+                            className="btn-primary upload-submit-btn"
+                        >
+                            {uploading ? 'Processing Batch...' : `Start Upload (${uploadFiles.length} Photos)`}
                         </button>
                     </form>
                 </div>

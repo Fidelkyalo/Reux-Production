@@ -20,9 +20,9 @@
 .about-image img {
     width: 100%;
     max-width: 350px;
-    aspect-ratio: 3/4;
+    aspect-ratio: 1/1;
     object-fit: cover;
-    object-position: top;
+    object-position: center 15%;
     border-radius: 50%;
     position: relative;
     z-index: 2;
