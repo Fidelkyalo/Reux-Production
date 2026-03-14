@@ -22,6 +22,9 @@ export default function AdminDashboard() {
     const [images, setImages] = useState([]);
     const [categories, setCategories] = useState(['ALL']);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const PAGE_SIZE = 24;
 
     // Upload state
     const [uploadFiles, setUploadFiles] = useState([]);
@@ -35,24 +38,45 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchImages();
+        fetchInitialImages();
     }, []);
 
-    const fetchImages = async () => {
+    const fetchInitialImages = async () => {
         setLoading(true);
+        setPage(0);
         const { data, error } = await supabase
             .from('portfolio_images')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(PAGE_SIZE);
 
         if (error) {
             console.error("Error fetching images:", error);
         } else if (data) {
             setImages(data);
-            // Categories is now an array, so we flatMap
+            setHasMore(data.length === PAGE_SIZE);
             const allCats = data.flatMap(img => img.categories || []);
             const uniqueCats = [...new Set(allCats)];
             setCategories(['ALL', ...uniqueCats]);
+        }
+        setLoading(false);
+    };
+
+    const fetchMoreImages = async () => {
+        const nextPage = page + 1;
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('portfolio_images')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .range(nextPage * PAGE_SIZE, (nextPage + 1) * PAGE_SIZE - 1);
+
+        if (error) {
+            console.error("Error fetching more images:", error);
+        } else if (data) {
+            setImages(prev => [...prev, ...data]);
+            setPage(nextPage);
+            setHasMore(data.length === PAGE_SIZE);
         }
         setLoading(false);
     };
@@ -112,7 +136,7 @@ export default function AdminDashboard() {
             setUploadCategories([]);
 
             // Re-fetch gallery
-            fetchImages();
+            fetchInitialImages();
 
             // Clear success message after 5 seconds
             setTimeout(() => setUploadMessage(''), 5000);
@@ -191,7 +215,7 @@ export default function AdminDashboard() {
 
             setUploadMessage(`Successfully deleted ${selectedIds.length} images.`);
             setSelectedIds([]);
-            fetchImages();
+            fetchInitialImages();
 
             setTimeout(() => setUploadMessage(''), 3000);
         } catch (error) {
@@ -215,7 +239,7 @@ export default function AdminDashboard() {
                 await supabase.storage.from('portfolio-assets').remove([pathParts[1]]);
             }
 
-            fetchImages();
+            fetchInitialImages();
         } catch (error) {
             console.error('Delete Error:', error);
             alert("Failed to delete image");
@@ -382,7 +406,7 @@ export default function AdminDashboard() {
                                                 readOnly
                                             />
                                         </div>
-                                        <img src={img.image_url} alt="Portfolio" />
+                                        <img src={`${img.image_url}?width=300&quality=50`} alt="Portfolio" />
                                         <span className="photo-category">{(img.categories || []).join(', ')}</span>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDelete(img.id, img.image_url); }}
@@ -395,6 +419,19 @@ export default function AdminDashboard() {
                                 ))}
                                 {displayedImages.length === 0 && <p>No images found in this category.</p>}
                             </div>
+
+                            {hasMore && (
+                                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                                    <button
+                                        onClick={fetchMoreImages}
+                                        className="btn-primary"
+                                        style={{ width: 'auto', padding: '0.8rem 3rem' }}
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Loading...' : 'Load More Photos'}
+                                    </button>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
