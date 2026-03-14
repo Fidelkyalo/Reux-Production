@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../conf/supabase';
+import { supabase, isConfigured } from '../conf/supabase';
 import './Gallery.css';
 
 const PREDEFINED_CATEGORIES = [
@@ -24,10 +24,16 @@ export default function Gallery() {
     const categories = ['ALL', ...PREDEFINED_CATEGORIES];
 
     useEffect(() => {
-        fetchImages();
+        if (isConfigured) {
+            fetchImages();
+        } else {
+            console.warn("Gallery: Supabase is not configured. Skipping fetch.");
+            setLoading(false);
+        }
     }, []);
 
     const fetchImages = async () => {
+        if (!isConfigured) return;
         setLoading(true);
         const { data, error } = await supabase
             .from('portfolio_images')

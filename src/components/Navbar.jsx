@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Instagram, LogIn, User, MessageCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '../conf/supabase';
+import { supabase, isConfigured } from '../conf/supabase';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -14,6 +14,11 @@ export default function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
+        if (!isConfigured) {
+            console.warn("Navbar: Supabase is not configured. Auth features disabled.");
+            return;
+        }
+
         const checkAuth = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setIsLoggedIn(!!session);
