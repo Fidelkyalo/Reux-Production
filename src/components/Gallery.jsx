@@ -134,12 +134,31 @@ export default function Gallery() {
                                     />
                                 </div>
                             ))}
+
+                            {/* Loading skeletons for the next batch */}
+                            {loading && [...Array(PAGE_SIZE)].map((_, i) => (
+                                <div key={`skeleton-${i}`} className="gallery-item">
+                                    <div className="skeleton" style={{ aspectRatio: '2/3' }}></div>
+                                </div>
+                            ))}
                         </div>
 
                         {hasMore && (
                             <div className="load-more-container" style={{ textAlign: 'center', marginTop: '3rem' }}>
-                                <button className="btn-accent" onClick={handleLoadMore} disabled={loading}>
-                                    {loading ? 'Optimizing...' : 'Show More Masterpieces'}
+                                <button
+                                    className={`btn-accent ${loading ? 'btn-loading' : ''}`}
+                                    onClick={handleLoadMore}
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <span className="flex items-center gap-2 justify-center">
+                                            <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Optimizing...
+                                        </span>
+                                    ) : 'Show More Masterpieces'}
                                 </button>
                             </div>
                         )}
