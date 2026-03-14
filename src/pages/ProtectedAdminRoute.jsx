@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { supabase } from '../conf/supabase';
 
 export default function ProtectedAdminRoute({ children }) {
     const [isLoggedIn, setIsLoggedIn] = useState(null);
 
     useEffect(() => {
-        const loggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-        const email = sessionStorage.getItem('userEmail');
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setIsLoggedIn(!!session);
+        };
 
-        if (loggedIn && email === 'reuxproduction@gmail.com') {
-            setIsLoggedIn(true);
-        } else {
-            setIsLoggedIn(false);
-        }
+        checkAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setIsLoggedIn(!!session);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     if (isLoggedIn === null) return <div className="admin-container">Loading...</div>;

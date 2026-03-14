@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, Lock } from 'lucide-react';
+import { supabase } from '../conf/supabase';
 import '../styles/Admin.css';
 
 export default function Login() {
@@ -10,22 +11,21 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const AUTH_EMAIL = 'reuxproduction@gmail.com';
-    const AUTH_PASSCODE = 'reuxproduction26';
-
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        // Simple local credential check
-        if (email === AUTH_EMAIL && password === AUTH_PASSCODE) {
-            // Store session
-            sessionStorage.setItem('isLoggedIn', 'true');
-            sessionStorage.setItem('userEmail', email);
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (authError) {
+            setError(authError.message);
+            console.error(authError);
+        } else if (data.session) {
             navigate('/admin');
-        } else {
-            setError('Invalid credentials. Please try again.');
         }
 
         setLoading(false);
