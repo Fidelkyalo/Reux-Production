@@ -1,12 +1,19 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './About.css';
 
 export default function About() {
+    const [profileImg, setProfileImg] = useState('');
+
+    useEffect(() => {
+        setProfileImg('/assets/profile.webp');
+    }, []);
+
     return (
         <section id="about" className="section about-section">
             <div className="container about-content">
                 <div className="about-image">
+                    {profileImg && <img src={profileImg} alt="Photographer Profile" />}
                     <div className="frame"></div>
                 </div>
                 <div className="about-text">
