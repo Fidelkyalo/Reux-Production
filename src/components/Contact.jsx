@@ -7,11 +7,13 @@ export default function Contact() {
     return (
         <section id="contact" className="section contact-section">
             <div className="container">
-                <div className="contact-grid">
-                    <div className="contact-info">
+                <div className="contact-info-focused">
+                    <div className="section-header text-center">
                         <h2>Get In Touch</h2>
-                        <p>Ready to start your project? Contact us today for a consultation.</p>
+                        <p>Ready to capture your milestones? Contact us today for bookings and inquiries.</p>
+                    </div>
 
+                    <div className="contact-links-grid">
                         <div className="info-item">
                             <Mail className="icon" />
                             <div>
@@ -44,40 +46,6 @@ export default function Contact() {
                             </div>
                         </div>
                     </div>
-
-                    <form
-                        className="contact-form"
-                        action="https://formsubmit.co/reuxproduction@gmail.com"
-                        method="POST"
-                    >
-                        {/* Honeypot for spammers */}
-                        <input type="text" name="_honey" style={{ display: 'none' }} />
-
-                        {/* Disable Captcha to keep it simple */}
-                        <input type="hidden" name="_captcha" value="false" />
-
-                        {/* Success URL (optional, stay on page or go to thank you) */}
-                        <input type="hidden" name="_next" value="http://localhost:5173" />
-
-                        <div className="form-group">
-                            <input type="text" name="name" placeholder="Your Name" required />
-                        </div>
-                        <div className="form-group">
-                            <input type="email" name="email" placeholder="Your Email" required />
-                        </div>
-                        <div className="form-group">
-                            <select name="service_type">
-                                <option>Wedding Photography</option>
-                                <option>Video Production</option>
-                                <option>Portrait Session</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <textarea name="message" rows="5" placeholder="Tell us about your project" required></textarea>
-                        </div>
-                        <button type="submit" className="btn btn-accent">Send Message</button>
-                    </form>
                 </div>
             </div>
 
