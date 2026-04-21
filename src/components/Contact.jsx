@@ -42,7 +42,7 @@ export default function Contact() {
             </div>
 
             <footer className="footer text-center">
-                <p>&copy; {new Date().getFullYear()} REUX PRODUCTION. Crafted by <a href="https://fidel.pizzatechnologies.co.ke" target="_blank" rel="noopener noreferrer" className="footer-link">Fidel Kyalo</a>. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} REUX PRODUCTION. Crafted by <a href="https://fidel-portfolio-seven.vercel.app/" target="_blank" rel="noopener noreferrer" className="footer-link">Fidel Kyalo</a>. All rights reserved.</p>
             </footer>
         </section>
     );
